@@ -77,7 +77,7 @@ jobs:
 
       - name: Generate Firmware SHA-256
         run: |
-          cp ${{ github.workspace }}/bin/targets/armsr/armv8/*squashfs-combined-efi.img.gz ${{ github.workspace }}
+          cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.* ${{ github.workspace }}
           for file in *squashfs-combined-efi.img.gz; do
             sha256sum "$file" > "$file.sha256"
             sha256sum -c "$file.sha256"
@@ -99,7 +99,7 @@ jobs:
           body_path: ${{ github.workspace }}/info.md
           files: |
             ${{ github.workspace }}/*squashfs-combined-efi.img.gz
-            ${{ github.workspace }}/*.sha256
+            ${{ github.workspace }}/*.*
           token: ${{ secrets.TOKEN_OP }}
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_OP }}

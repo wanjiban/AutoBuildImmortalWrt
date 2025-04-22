@@ -49,7 +49,7 @@ PACKAGES="$PACKAGES luci-i18n-samba4-zh-cn"
 PACKAGES="$PACKAGES luci-app-ttyd"
 # PACKAGES="$PACKAGES luci-app-lucky"
 # PACKAGES="$PACKAGES luci-app-homebox"
-PACKAGES="$PACKAGES luci-app-msd_lite"
+# PACKAGES="$PACKAGES luci-app-msd_lite"
 
 # 构建镜像
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Building image with the following packages:"

@@ -51,7 +51,6 @@ PACKAGES="$PACKAGES luci-app-ttyd"
 PACKAGES="$PACKAGES luci-app-lucky"
 PACKAGES="$PACKAGES luci-app-homebox"
 PACKAGES="$PACKAGES luci-app-msd_lite"
-PACKAGES="$PACKAGES kmod-vmxnet3"
 
 # 构建镜像
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Building image with the following packages:"

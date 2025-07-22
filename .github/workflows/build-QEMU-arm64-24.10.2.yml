@@ -33,6 +33,15 @@ on:
       pppoe_password:
         description: "宽带密码 (若启用PPPoE)"
         required: false
+      include_docker:
+        description: |
+          是否编译 Docker 插件
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
 
 jobs:
   build:
@@ -58,6 +67,7 @@ jobs:
         run: |
           profiles="${{ github.event.inputs.profile }}"
           rootfs_partsize="${{ github.event.inputs.rootfs_partsize }}"
+          include_docker="${{ github.event.inputs.include_docker }}"
           
           IFS=',' read -r -a profile_array <<< "$profiles"
           
@@ -76,6 +86,7 @@ jobs:
               -e ENABLE_PPPOE=${{ inputs.enable_pppoe }} \
               -e PPPOE_ACCOUNT=${{ inputs.pppoe_account }} \
               -e PPPOE_PASSWORD=${{ inputs.pppoe_password }} \
+              -e INCLUDE_DOCKER=$include_docker \
               immortalwrt/imagebuilder:armsr-armv8-openwrt-24.10.2 /bin/bash /home/build/immortalwrt/build.sh
           done
       - name: Generate Firmware SHA-256

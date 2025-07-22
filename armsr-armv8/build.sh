@@ -32,6 +32,10 @@ else
   # 拷贝 run/arm64 下所有 run 文件和ipk文件 到 extra-packages 目录
   mkdir -p /home/build/immortalwrt/extra-packages
   cp -r /tmp/store-run-repo/run/arm64/* /home/build/immortalwrt/extra-packages/
+  mkdir -p /home/build/immortalwrt/extra-packages/luci-app-lucky
+  wget https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/lucky_2.15.10-r1_aarch64_generic.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/lucky_2.15.10-r1_aarch64_generic.ipk
+  wget https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk
+  wget https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-app-lucky_1.2.0-r8_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-app-lucky_1.2.0-r8_all.ipk
 
   echo "✅ Run files copied to extra-packages:"
   ls -lh /home/build/immortalwrt/extra-packages/*.run
@@ -55,21 +59,34 @@ PACKAGES="$PACKAGES luci-i18n-diskman-zh-cn"
 PACKAGES="$PACKAGES luci-i18n-package-manager-zh-cn"
 PACKAGES="$PACKAGES luci-i18n-firewall-zh-cn"
 # 服务——FileBrowser 用户名admin 密码admin
-PACKAGES="$PACKAGES luci-i18n-filebrowser-go-zh-cn"
-PACKAGES="$PACKAGES luci-theme-argon"
+# PACKAGES="$PACKAGES luci-i18n-filebrowser-go-zh-cn"
 PACKAGES="$PACKAGES luci-app-argon-config"
 PACKAGES="$PACKAGES luci-i18n-argon-config-zh-cn"
 PACKAGES="$PACKAGES luci-i18n-ttyd-zh-cn"
-PACKAGES="$PACKAGES luci-i18n-passwall-zh-cn"
+PACKAGES="$PACKAGES luci-app-ttyd"
+# PACKAGES="$PACKAGES luci-i18n-passwall-zh-cn"
 PACKAGES="$PACKAGES luci-app-openclash"
-PACKAGES="$PACKAGES luci-i18n-homeproxy-zh-cn"
-PACKAGES="$PACKAGES openssh-sftp-server"
-PACKAGES="$PACKAGES luci-i18n-dockerman-zh-cn"
-PACKAGES="$PACKAGES luci-i18n-samba4-zh-cn"
+# PACKAGES="$PACKAGES luci-app-docker"
+# PACKAGES="$PACKAGES luci-app-passwall"
+# PACKAGES="$PACKAGES luci-app-samba4"
+
+# PACKAGES="$PACKAGES luci-i18n-homeproxy-zh-cn"
+# PACKAGES="$PACKAGES openssh-sftp-server"
+# PACKAGES="$PACKAGES luci-i18n-samba4-zh-cn"
+# ADD by WJB
+PACKAGES="$PACKAGES luci-app-msd_lite"
+PACKAGES="$PACKAGES luci-i18n-msd_lite-zh-cn"
+PACKAGES="$PACKAGES nano-plus"
+PACKAGES="$PACKAGES luci-proto-wireguard"
+PACKAGES="$PACKAGES luci-app-frpc"
+PACKAGES="$PACKAGES luci-i18n-frpc-zh-cn"
+
 # 文件管理器
-PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"
+# PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"
+# PACKAGES="$PACKAGES luci-app-filetransfer"
 # 静态文件服务器dufs(推荐)
-PACKAGES="$PACKAGES luci-i18n-dufs-zh-cn"
+# PACKAGES="$PACKAGES luci-i18n-dufs-zh-cn"
+
 # ======== shell/custom-packages.sh =======
 # 合并imm仓库以外的第三方插件
 PACKAGES="$PACKAGES $CUSTOM_PACKAGES"

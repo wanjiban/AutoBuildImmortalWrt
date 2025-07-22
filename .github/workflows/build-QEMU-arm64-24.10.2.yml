@@ -95,7 +95,7 @@ jobs:
 
       - name: Set Release Date
         id: date
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
 
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v2.2.1

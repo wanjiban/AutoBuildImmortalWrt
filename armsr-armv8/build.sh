@@ -29,13 +29,25 @@ else
   echo "🔄 正在同步第三方软件仓库 Cloning run file repo..."
   git clone --depth=1 https://github.com/wukongdaily/store.git /tmp/store-run-repo
 
-  # 拷贝 run/arm64 下所有 run 文件和ipk文件 到 extra-packages 目录
-  mkdir -p /home/build/immortalwrt/extra-packages
-  cp -r /tmp/store-run-repo/run/arm64/* /home/build/immortalwrt/extra-packages/
-  mkdir -p /home/build/immortalwrt/extra-packages/luci-app-lucky
-  wget -q https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/lucky_2.15.10-r1_aarch64_generic.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/lucky_2.15.10-r1_aarch64_generic.ipk &
-  wget -q https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk &
-  wget -q https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-app-lucky_1.2.0-r8_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-app-lucky_1.2.0-r8_all.ipk &
+ # 下载 luci-app-lucky 相关 ipk 包（自动获取最新版本）
+  LUCKY_API="https://api.github.com/repos/sirpdboy/luci-app-lucky/releases/latest"
+  LUCKY_ASSETS=$(curl -s $LUCKY_API | grep "browser_download_url" | cut -d '"' -f 4)
+  DEST_DIR="/home/build/immortalwrt/extra-packages/luci-app-lucky"
+  mkdir -p "$DEST_DIR"
+
+  # 定义需要下载的包的正则表达式
+  declare -A LUCKY_URLS=(
+    [lucky]="lucky_.*aarch64_generic\.ipk"
+    [i18n]="luci-i18n-lucky-zh-cn_.*all\.ipk"
+    [app]="luci-app-lucky_.*all\.ipk"
+  )
+
+  for key in "${!LUCKY_URLS[@]}"; do
+    url=$(echo "$LUCKY_ASSETS" | grep -E "/${LUCKY_URLS[$key]}" | head -n1)
+    if [ -n "$url" ]; then
+      wget -q "$url" -O "$DEST_DIR/$(basename "$url")" &
+    fi
+  done
   wait
 
   echo "✅ Run files copied to extra-packages:"

@@ -25,11 +25,7 @@ cat /home/build/immortalwrt/files/etc/config/pppoe-settings
 if [ -z "$CUSTOM_PACKAGES" ]; then
   echo "⚪️ 未选择 任何第三方软件包"
 else
-  # 下载 run 文件仓库
-  echo "🔄 正在同步第三方软件仓库 Cloning run file repo..."
-  git clone --depth=1 https://github.com/wukongdaily/store.git /tmp/store-run-repo
-
- # 下载 luci-app-lucky 相关 ipk 包（自动获取最新版本）
+  # 下载 luci-app-lucky 相关 ipk 包（自动获取最新版本）
   LUCKY_API="https://api.github.com/repos/sirpdboy/luci-app-lucky/releases/latest"
   LUCKY_ASSETS=$(curl -s $LUCKY_API | grep "browser_download_url" | cut -d '"' -f 4)
   DEST_DIR="/home/build/immortalwrt/extra-packages/luci-app-lucky"
@@ -49,6 +45,14 @@ else
     fi
   done
   wait
+  echo "✅ luci-app-lucky files copied to extra-packages:"
+  # 下载 run 文件仓库
+  echo "🔄 正在同步第三方软件仓库 Cloning run file repo..."
+  git clone --depth=1 https://github.com/wukongdaily/store.git /tmp/store-run-repo
+
+  # 拷贝 run/arm64 下所有 run 文件和ipk文件 到 extra-packages 目录
+  mkdir -p /home/build/immortalwrt/extra-packages
+  cp -r /tmp/store-run-repo/run/arm64/* /home/build/immortalwrt/extra-packages/
 
   echo "✅ Run files copied to extra-packages:"
   ls -lh /home/build/immortalwrt/extra-packages/*.run

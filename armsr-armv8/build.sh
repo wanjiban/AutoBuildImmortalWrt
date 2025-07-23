@@ -33,9 +33,10 @@ else
   mkdir -p /home/build/immortalwrt/extra-packages
   cp -r /tmp/store-run-repo/run/arm64/* /home/build/immortalwrt/extra-packages/
   mkdir -p /home/build/immortalwrt/extra-packages/luci-app-lucky
-  wget https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/lucky_2.15.10-r1_aarch64_generic.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/lucky_2.15.10-r1_aarch64_generic.ipk
-  wget https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk
-  wget https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-app-lucky_1.2.0-r8_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-app-lucky_1.2.0-r8_all.ipk
+  wget -q https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/lucky_2.15.10-r1_aarch64_generic.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/lucky_2.15.10-r1_aarch64_generic.ipk &
+  wget -q https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-i18n-lucky-zh-cn_24.058.25538.b15e738_all.ipk &
+  wget -q https://github.com/sirpdboy/luci-app-lucky/releases/download/v2.15.10/luci-app-lucky_1.2.0-r8_all.ipk -O /home/build/immortalwrt/extra-packages/luci-app-lucky/luci-app-lucky_1.2.0-r8_all.ipk &
+  wait
 
   echo "✅ Run files copied to extra-packages:"
   ls -lh /home/build/immortalwrt/extra-packages/*.run

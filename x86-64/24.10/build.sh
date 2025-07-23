@@ -32,6 +32,28 @@ else
   mkdir -p /home/build/immortalwrt/extra-packages
   cp -r /tmp/store-run-repo/run/x86/* /home/build/immortalwrt/extra-packages/
 
+  # 下载 luci-app-lucky 相关 ipk 包（自动获取最新版本）
+  LUCKY_API="https://api.github.com/repos/sirpdboy/luci-app-lucky/releases/latest"
+  LUCKY_ASSETS=$(curl -s $LUCKY_API | grep "browser_download_url" | cut -d '"' -f 4)
+
+  DEST_DIR="/home/build/immortalwrt/extra-packages/luci-app-lucky"
+  mkdir -p "$DEST_DIR"
+
+  # 定义需要下载的包的正则表达式
+  declare -A LUCKY_URLS=(
+    [lucky]="lucky_.*x86_64\.ipk"
+    [i18n]="luci-i18n-lucky-zh-cn_.*all\.ipk"
+    [app]="luci-app-lucky_.*all\.ipk"
+  )
+
+  for key in "${!LUCKY_URLS[@]}"; do
+    url=$(echo "$LUCKY_ASSETS" | grep -E "/${LUCKY_URLS[$key]}" | head -n1)
+    if [ -n "$url" ]; then
+      wget -q "$url" -O "$DEST_DIR/$(basename "$url")" &
+    fi
+  done
+  wait
+
   echo "✅ Run files copied to extra-packages:"
   ls -lh /home/build/immortalwrt/extra-packages/*.run
   # 解压并拷贝ipk到packages目录

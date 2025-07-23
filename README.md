@@ -21,7 +21,8 @@ https://mirrors.sjtug.sjtu.edu.cn/immortalwrt/releases/24.10.2/packages/x86_64/l
 ## 如何查询imm仓库外目前可以集成哪些插件
 https://github.com/wukongdaily/store/tree/master/run
 > 具体方法 https://github.com/wukongdaily/AutoBuildImmortalWrt/discussions/209
-## 第三方插件集成的原理详见以下视频
+## 【视频教程】如何集成第三方插件？
+https://www.youtube.com/watch?v=KN6AJYV1hBI <br>
 https://www.youtube.com/watch?v=7i6BQeitUtE
 
 ## 旁路由的用户必读

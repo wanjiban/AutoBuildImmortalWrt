@@ -103,7 +103,7 @@ fi
 # 扩大docker涵盖的子网范围 '172.16.0.0/12'
 # 方便各类docker容器的端口顺利通过防火墙 
 if command -v dockerd >/dev/null 2>&1; then
-    echo "检测到 Docker，正在配置防火墙规则..."
+    echo "检测到 Docker, 正在配置防火墙规则..."
     FW_FILE="/etc/config/firewall"
 
     # 删除所有名为 docker 的 zone
@@ -145,7 +145,7 @@ config forwarding
 EOF
 
 else
-    echo "未检测到 Docker，跳过防火墙配置。"
+    echo "未检测到 Docker, 跳过防火墙配置。"
 fi
 
 # 设置所有网口可访问网页终端

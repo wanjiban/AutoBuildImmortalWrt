@@ -23,7 +23,7 @@ on:
         description: "集成 store 商店"
         required: false
         type: boolean
-        default: true
+        default: false
       enable_pppoe:
         description: "是否配置PPPoE拨号信息?"
         required: true

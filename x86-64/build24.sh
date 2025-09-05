@@ -94,6 +94,7 @@ PACKAGES="$PACKAGES luci-proto-wireguard"
 PACKAGES="$PACKAGES luci-app-frpc"
 PACKAGES="$PACKAGES luci-i18n-frpc-zh-cn"
 PACKAGES="$PACKAGES iperf3"
+PACKAGES="$PACKAGES htop"
 
 # 文件管理器
 # PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"

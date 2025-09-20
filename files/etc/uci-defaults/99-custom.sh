@@ -68,6 +68,16 @@ if [ "$count" -eq 1 ]; then
     uci delete network.lan.gateway
     uci delete network.lan.dns
     uci commit network
+    # 单网口的时候添加自定义防火墙规则
+    cat >> /etc/nftables.d/10-custom-filter-chains.nft <<'EOF'
+    chain forward {
+        type filter hook forward priority filter;
+        policy accept;
+
+        tcp flags syn tcp option maxseg size set 1400
+    }
+    EOF
+
 elif [ "$count" -gt 1 ]; then
     # 多网口设备配置
     # 配置WAN
@@ -170,8 +180,9 @@ else
     echo "未检测到 Docker, 跳过防火墙配置。"
 fi
 
+
 # 设置所有网口可访问网页终端
-uci delete ttyd.@ttyd[0].interface
+# uci delete ttyd.@ttyd[0].interface
 
 # 设置所有网口可连接 SSH
 uci set dropbear.@dropbear[0].Interface=''
@@ -185,6 +196,10 @@ uci commit luci.diag
 
 uci set system.@system[0].hostname='WayOS'
 uci commit system
+
+uci set ttyd.@ttyd[0].command='/bin/login -f root'
+uci set ttyd.@ttyd[0].interface='@lan @wan'
+uci commit ttyd
 
 # 设置编译作者信息
 FILE_PATH="/etc/openwrt_release"

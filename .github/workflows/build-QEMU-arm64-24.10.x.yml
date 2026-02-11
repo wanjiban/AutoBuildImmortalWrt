@@ -149,6 +149,21 @@ jobs:
           mkdir -p "${{ github.workspace }}/${UTM_NAME}/Data"
           echo "✅ 创建 UTM 目录: $UTM_NAME/Data"
           
+          # 生成随机值（参考 mikrotik4UTM）
+          DRIVE_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+          VM_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+          VM_NAME="ImmortalWrt-${LUCI_VERSION}"
+          
+          # 生成随机 MAC 地址（以 e2 开头，符合 UTM 惯例）
+          MAC_PREFIX="E2"
+          MAC_SUFFIX=$(printf '%02x%02x%02x' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
+          MAC_ADDRESS="${MAC_PREFIX}:${MAC_SUFFIX:0:2}:${MAC_SUFFIX:2:2}:${MAC_SUFFIX:4:2}"
+          
+          echo "🔑 DRIVE_UUID: $DRIVE_UUID"
+          echo "🔑 VM_UUID: $VM_UUID"
+          echo "🔑 VM_NAME: $VM_NAME"
+          echo "🔑 MAC_ADDRESS: $MAC_ADDRESS"
+          
           # 复制 efi_vars.fd
           cp ${{ github.workspace }}/armsr-armv8/efi_vars.fd "${{ github.workspace }}/${UTM_NAME}/Data/"
           echo "✅ 复制 efi_vars.fd"
@@ -157,13 +172,23 @@ jobs:
           cp "$QCOW2_FILE" "${{ github.workspace }}/${UTM_NAME}/Data/"
           echo "✅ 复制 qcow2 到 Data 目录"
           
-          # 生成 config.plist（替换镜像文件名）
-          sed "s|immortalwrt-24.10.2-armsr-armv8-generic-squashfs-combined-efi (1).qcow2|${QCOW2_NAME}|g" \
-            ${{ github.workspace }}/armsr-armv8/config.plist.sample.plist > "${{ github.workspace }}/${UTM_NAME}/config.plist"
+          # 动态生成 config.plist（参考 mikrotik4UTM）
+          sed -e "s|__IMAGE_NAME__|${QCOW2_NAME}|g" \
+              -e "s|__VM_NAME__|${VM_NAME}|g" \
+              -e "s|__VM_UUID__|${VM_UUID}|g" \
+              -e "s|__DRIVE_UUID__|${DRIVE_UUID}|g" \
+              -e "s|__MAC_ADDRESS__|${MAC_ADDRESS}|g" \
+              -e "s|__ICON__|IOS|g" \
+              ${{ github.workspace }}/armsr-armv8/config.plist.sample > "${{ github.workspace }}/${UTM_NAME}/config.plist"
           echo "✅ 生成 config.plist"
           
-          # 生成图标 (SVG base64 -> file)
-          echo '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect fill="#e74c3c" width="128" height="128" rx="20"/><text x="64" y="80" font-size="60" fill="white" text-anchor="middle" font-family="sans-serif">W</text></svg>' > "${{ github.workspace }}/${UTM_NAME}/Data/icon.svg"
+          # 生成图标 (SVG)
+          cat > "${{ github.workspace }}/${UTM_NAME}/Data/icon.svg" << 'EOF'
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect fill="#e74c3c" width="128" height="128" rx="20"/>
+  <text x="64" y="80" font-size="60" fill="white" text-anchor="middle" font-family="sans-serif">W</text>
+</svg>
+EOF
           echo "✅ 生成图标"
           
           # 显示 UTM 包结构

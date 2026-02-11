@@ -120,6 +120,99 @@ jobs:
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 ${{ github.workspace }}
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk ${{ github.workspace }}
 
+      - name: Generate UTM package (参考 mikrotik4UTM)
+        run: |
+          echo "=== 生成 UTM 包 ==="
+
+          # 查找 qcow2 文件
+          QCOW2_FILE=$(ls ${{ github.workspace }}/*.qcow2 2>/dev/null | head -1)
+          if [ -z "$QCOW2_FILE" ]; then
+            echo "❌ 未找到 qcow2 文件"
+            exit 1
+          fi
+          echo "📦 找到 qcow2 文件: $QCOW2_FILE"
+
+          # 获取文件名（不含路径）
+          QCOW2_NAME=$(basename "$QCOW2_FILE")
+          echo "📦 文件名: $QCOW2_NAME"
+
+          # 获取 luci_version 作为版本号
+          LUCI_VERSION="${{ github.event.inputs.luci_version }}"
+          echo "📦 版本: $LUCI_VERSION"
+
+          # UTM 包名
+          UTM_NAME="ImmortalWrt-${LUCI_VERSION}.utm"
+          echo "📦 UTM 包名: $UTM_NAME"
+
+          # 创建 UTM 包目录
+          mkdir -p "${{ github.workspace }}/${UTM_NAME}/Data"
+          echo "✅ 创建 UTM 目录: $UTM_NAME/Data"
+
+          # 生成随机值（参考 mikrotik4UTM）
+          DRIVE_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+          VM_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+          VM_NAME="ImmortalWrt-${LUCI_VERSION}"
+
+          # 生成随机 MAC 地址（以 e2 开头，符合 UTM 惯例）
+          MAC_SUFFIX=$(printf '%02x:%02x:%02x' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
+          MAC_ADDRESS="E2:${MAC_SUFFIX}"
+
+          echo "🔑 DRIVE_UUID: $DRIVE_UUID"
+          echo "🔑 VM_UUID: $VM_UUID"
+          echo "🔑 VM_NAME: $VM_NAME"
+          echo "🔑 MAC_ADDRESS: $MAC_ADDRESS"
+
+          # 安装工具
+          apt-get update && apt-get install -y qemu-utils gzip curl
+
+          # 转换 qcow2 为 raw img
+          IMG_NAME="${QCOW2_NAME%.qcow2}.img"
+          qemu-img convert -f qcow2 -O raw "$QCOW2_FILE" "${{ github.workspace }}/${UTM_NAME}/Data/${IMG_NAME}"
+          echo "✅ 转换 qcow2 为 img: $IMG_NAME"
+
+          # 压缩 img
+          gzip -f "${{ github.workspace }}/${UTM_NAME}/Data/${IMG_NAME}"
+          IMG_GZ_NAME="${IMG_NAME}.gz"
+          echo "✅ 压缩 img 为 img.gz"
+
+          # 下载 efi_vars.fd
+          curl -sL "https://raw.githubusercontent.com/wanjiban/mikrotik4UTM/elseif/Files/efi_vars.fd" -o "${{ github.workspace }}/${UTM_NAME}/Data/efi_vars.fd"
+          echo "✅ 下载 efi_vars.fd"
+
+          # 下载图标
+          curl -sL "https://raw.githubusercontent.com/wanjiban/mikrotik4UTM/elseif/Templates/mikrotik.svg" -o "${{ github.workspace }}/${UTM_NAME}/Data/icon.svg" 2>/dev/null || \
+          echo '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect fill="#e74c3c" width="128" height="128" rx="20"/><text x="64" y="80" font-size="60" fill="white" text-anchor="middle" font-family="sans-serif">W</text></svg>' > "${{ github.workspace }}/${UTM_NAME}/Data/icon.svg"
+          echo "✅ 下载图标"
+
+          # 生成 config.plist（使用 base64 避免 YAML 解析问题）
+          PLIST_CONTENT="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvRkhMRy8xLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvUkhMRy8xLjEvL0VOIiBwbGlzdCB2ZXJzaW9uPSIxLjAiPjxkaWN0PjxrZXk+QmFja2VuZTwva2V5PjxzdHJpbmc+UVVNVTwvc3RyaW5nPjxrZXk+Q29uZmlndXJhdGlvblZlcnNpb248L2tleT48aW50ZWdlcj40PC9pbnRlZ2VyPjxrZXk+RGlzcGxheTwva2V5PjxhcnJheS8+PGtleT5Ecml2ZTwva2V5PjxhcnJheT48ZGljdD48a2V5PklkZW50aWZpZXI8L2tleT48c3RyaW5nPiRIT1JFX1VVSURfQTwvc3RyaW5nPjxrZXk+SW1hZ2VOYW1lPC9rZXk+PHN0cmluZz5JTUdfTkFNRV8wPC9zdHJpbmc+PGtleT5JbWFnZVR5cGU8L2tleT48c3RyaW5nPkRpc2s8L3N0cmluZz48a2V5PkludGVyZmFjZTwva2V5PjxzdHJpbmc+VmlydElPPC9zdHJpbmc+PGtleT5JbnRlcmZhY2VWZXJzaW9uPC9rZXk+PGludGVnZXI+MTwvaW50ZWdlcj48a2V5PlJlYWRPbmx5PC9rZXk+PGZhbHNlLz48L2RpY3Q+PC9hcnJheT48a2V5PkluZm9ybWF0aW9uPC9rZXk+PGRpY3Q+PGtleT5JY29uPC9rZXk+PHN0cmluZ0lPUzwvc3RyaW5nPjxrZXk+SWNvbkN1c3RvbTwva2V5PjxmYWxzZS8+PGtleT5OYW1lPC9rZXk+PHN0cmluZz5WTV9OQU1FXzA8L3N0cmluZz48a2V5Pk5vdGVzPC9rZXk+PHN0cmluZz48L3N0cmluZz48a2V5PlVVSURfMDwva2V5PjxzdHJpbmc+Vk1fVVVJRF8wPC9zdHJpbmc+PC9kaWN0PjxrZXk+SW5wdXQ8L2tleT48ZGljdC8+PGtleT5OZXR3b3JrPC9rZXk+PGFycmF5PjxkaWN0PjxrZXk+TW9kZTwva2V5PjxzdHJpbmc+QnJpZGdlZDwvc3RyaW5nPjxrZXk+TUFDX0FERFJFUzA8L2tleT48c3RyaW5nPk1BQ19BRERSRVNfMDwvc3RyaW5nPjxrZXk+SGFyZHdhcmU8L2tleT48c3RyaW5nPnZteG5ldDM8L3N0cmluZz48a2V5PkJyaWRnZUludGVyZmFjZTwva2V5PjxzdHJpbmc+PC9zdHJpbmc+PGtleT5Qb3J0Rm9yd2FyZDwva2V5PjxhcnJheS8+PC9kaWN0PjwvYXJyYXk+PGtleT5RVU1NPC9rZXk+PGRpY3Q+PGtleT5VRUZJQm9vdDwva2V5Pjx0cnVlLz48a2V5PlRhcmdldDwva2V5PjxzdHJpbmc+dmlydDwvc3RyaW5nPjxrZXk+Q1BVPC9rZXk+PHN0cmluZz5jb3J0ZXgtYTcyPC9zdHJpbmc+PGtleT5DUFBDb3VudDwva2V5PjxpbnRlZ2VyPjQ8L2ludGVnZXI+PGtleT5NZW1vcnlTaXplPC9rZXk+PGludGVnZXI+NTEyPC9pbnRlZ2VyPjwvZGljdD48a2V5PlNlcmlhbDwva2V5PjxhcnJheT48ZGljdD48a2V5PlRhcmdldDwva2V5PjxzdHJpbmc+QXV0bzwvc3RyaW5nPjwvZGljdD48L2FycmF5PjxrZXk+U2hhcmluZzwva2V5PjxkaWN0Lz48a2V5PlNvdW5kPC9rZXk+PGFycmF5Lz48a2V5PlN5c3RlbTwva2V5PjxkaWN0PjxrZXk+QXJjaGl0ZWN0dXJlPC9rZXk+PHN0cmluZz5hYXJjaDY0PC9zdHJpbmc+PGtleT5DUFU8L2tleT48c3RyaW5nPmNvcnRleC1hNzI8L3N0cmluZz48a2V5PkNQUENvdW50PC9rZXk+PGludGVnZXI+NDwvaW50ZWdlcj48a2V5PkpJVENhY2hlU2l6ZTwva2V5PjxpbnRlZ2VyPjA8L2ludGVnZXI+PGtleT5NZW1vcnlTaXplPC9rZXk+PGludGVnZXI+NTEyPC9pbnRlZ2VyPjxrZXk+VGFyZ2V0PC9rZXk+PHN0cmluZz52aXJ0PC9zdHJpbmc+PC9kaWN0PjwvZGljdD48L3BsaXN0Pg=="
+          echo "$PLIST_CONTENT" | base64 -d > "${{ github.workspace }}/${UTM_NAME}/config.plist"
+          echo "✅ 生成 config.plist"
+
+          # 替换占位符
+          sed -i "s|HOR_UUID_A|${DRIVE_UUID}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+          sed -i "s|IMG_NAME_0|${IMG_GZ_NAME}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+          sed -i "s|VM_NAME_0|${VM_NAME}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+          sed -i "s|MAC_ADDRES0|${MAC_ADDRESS}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+          sed -i "s|VM_UUID_0|${VM_UUID}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+
+          # 显示 UTM 包结构
+          echo "=== UTM 包结构 ==="
+          find "${{ github.workspace }}/${UTM_NAME}" -type f
+
+          # 打包成 zip
+          cd "${{ github.workspace }}"
+          zip -r "${UTM_NAME}.zip" "${UTM_NAME}"
+          echo "✅ 生成 zip 包: ${UTM_NAME}.zip"
+
+          # 清理临时文件（保留 zip）
+          rm -rf "${{ github.workspace }}/${UTM_NAME}"
+          echo "✅ 清理临时文件"
+
+          # 列出产物
+          echo "=== 所有产物 ==="
+          ls -lh *.utm.zip *.qcow2 *.vmdk 2>/dev/null
+
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v2.2.1
         with:
@@ -129,6 +222,7 @@ jobs:
           files: |
             ${{ github.workspace }}/*.qcow2
             ${{ github.workspace }}/*.vmdk
+            ${{ github.workspace }}/*.utm.zip
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

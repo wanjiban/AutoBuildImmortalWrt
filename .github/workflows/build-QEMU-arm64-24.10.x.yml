@@ -149,7 +149,7 @@ jobs:
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v2.2.1
         with:
-          tag_name: QEMU-${{ steps.version.outputs.version }}
+          tag_name: QEMU
           name: ImmortWrt-QEMU-armsr-armv8-${{ steps.version.outputs.version }}
           body_path: ${{ github.workspace }}/armsr-armv8/info.md
           files: |

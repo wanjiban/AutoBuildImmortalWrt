@@ -116,8 +116,29 @@ jobs:
           done
       - name: Copy Firmware to workspace
         run: |
-          cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 ${{ github.workspace }}
-          cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk ${{ github.workspace }}
+          echo "Checking for qcow2 files..."
+          ls -la ${{ github.workspace }}/bin/targets/armsr/armv8/ || echo "Directory not found"
+          ls -la ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 2>/dev/null || echo "No qcow2 files found"
+          
+          # Copy only if files exist
+          if ls ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 1> /dev/null 2>&1; then
+            cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 ${{ github.workspace }}/
+            echo "✅ Copied qcow2 files"
+          else
+            echo "❌ No qcow2 files found to copy"
+            exit 1
+          fi
+          
+          if ls ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk 1> /dev/null 2>&1; then
+            cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk ${{ github.workspace }}/
+            echo "✅ Copied vmdk files"
+          fi
+
+      - name: Verify copied files
+        run: |
+          echo "Checking copied files in workspace root..."
+          ls -la ${{ github.workspace }}/*.qcow2 || echo "No qcow2 files in workspace root"
+          ls -la ${{ github.workspace }}/*.vmdk || echo "No vmdk files in workspace root"
 
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v2.2.1
@@ -128,6 +149,8 @@ jobs:
           files: |
             ${{ github.workspace }}/*.qcow2 
             ${{ github.workspace }}/*.vmdk
+          draft: false
+          prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

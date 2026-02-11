@@ -121,58 +121,63 @@ jobs:
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk ${{ github.workspace }}
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.img.gz ${{ github.workspace }}
 
-      - name: Generate UTM package
+      - name: Generate UTM package (img format)
         run: |
-          echo "=== 生成 UTM 格式 ==="
-          
-          # 查找 qcow2 文件
-          QCOW2_FILE=$(ls ${{ github.workspace }}/*.qcow2 2>/dev/null | head -1)
-          if [ -z "$QCOW2_FILE" ]; then
-            echo "❌ 未找到 qcow2 文件"
+          echo "=== 生成 UTM 格式（img 格式）==="
+
+          # 查找 img.gz 文件
+          IMG_GZ=$(ls ${{ github.workspace }}/*.img.gz 2>/dev/null | head -1)
+          if [ -z "$IMG_GZ" ]; then
+            echo "❌ 未找到 img.gz 文件"
             exit 1
           fi
-          echo "📦 找到 qcow2 文件: $QCOW2_FILE"
-          
+          echo "📦 找到 img.gz 文件: $IMG_GZ"
+
+          # 解压得到 .img 文件
+          IMG_FILE="${IMG_GZ%.gz}"
+          gunzip -f "$IMG_GZ"
+          echo "📦 解压得到: $IMG_FILE"
+
           # 获取文件名（不含路径）
-          QCOW2_NAME=$(basename "$QCOW2_FILE")
-          echo "📦 文件名: $QCOW2_NAME"
-          
+          IMG_NAME=$(basename "$IMG_FILE")
+          echo "📦 文件名: $IMG_NAME"
+
           # 获取 luci_version 作为版本号
           LUCI_VERSION="${{ github.event.inputs.luci_version }}"
           echo "📦 版本: $LUCI_VERSION"
-          
+
           # UTM 包名
           UTM_NAME="ImmortalWrt-${LUCI_VERSION}.utm"
           echo "📦 UTM 包名: $UTM_NAME"
-          
+
           # 创建 UTM 包目录
           mkdir -p "${{ github.workspace }}/${UTM_NAME}/Data"
           echo "✅ 创建 UTM 目录: $UTM_NAME/Data"
-          
+
           # 生成随机值（参考 mikrotik4UTM）
           DRIVE_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
           VM_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
           VM_NAME="ImmortalWrt-${LUCI_VERSION}"
-          
-           # 生成随机 MAC 地址（以 e2 开头，符合 UTM 惯例）
-           MAC_SUFFIX=$(printf '%02x:%02x:%02x' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
-           MAC_ADDRESS="E2:${MAC_SUFFIX}"
-          
+
+          # 生成随机 MAC 地址（以 e2 开头，符合 UTM 惯例）
+          MAC_SUFFIX=$(printf '%02x:%02x:%02x' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
+          MAC_ADDRESS="E2:${MAC_SUFFIX}"
+
           echo "🔑 DRIVE_UUID: $DRIVE_UUID"
           echo "🔑 VM_UUID: $VM_UUID"
           echo "🔑 VM_NAME: $VM_NAME"
           echo "🔑 MAC_ADDRESS: $MAC_ADDRESS"
-          
+
           # 复制 efi_vars.fd
           cp ${{ github.workspace }}/armsr-armv8/efi_vars.fd "${{ github.workspace }}/${UTM_NAME}/Data/"
           echo "✅ 复制 efi_vars.fd"
-          
-          # 复制 qcow2 到 Data 目录
-          cp "$QCOW2_FILE" "${{ github.workspace }}/${UTM_NAME}/Data/"
-          echo "✅ 复制 qcow2 到 Data 目录"
-          
+
+          # 复制 img 到 Data 目录
+          cp "$IMG_FILE" "${{ github.workspace }}/${UTM_NAME}/Data/"
+          echo "✅ 复制 img 到 Data 目录"
+
           # 动态生成 config.plist（参考 mikrotik4UTM）
-          sed -e "s|__IMAGE_NAME__|${QCOW2_NAME}|g" \
+          sed -e "s|__IMAGE_NAME__|${IMG_NAME}|g" \
               -e "s|__VM_NAME__|${VM_NAME}|g" \
               -e "s|__VM_UUID__|${VM_UUID}|g" \
               -e "s|__DRIVE_UUID__|${DRIVE_UUID}|g" \
@@ -180,23 +185,23 @@ jobs:
               -e "s|__ICON__|IOS|g" \
               ${{ github.workspace }}/armsr-armv8/config.plist.sample > "${{ github.workspace }}/${UTM_NAME}/config.plist"
           echo "✅ 生成 config.plist"
-          
+
           # 生成图标 (SVG)
           echo '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect fill="#e74c3c" width="128" height="128" rx="20"/><text x="64" y="80" font-size="60" fill="white" text-anchor="middle" font-family="sans-serif">W</text></svg>' > "${{ github.workspace }}/${UTM_NAME}/Data/icon.svg"
           echo "✅ 生成图标"
-          
+
           # 显示 UTM 包结构
           echo "=== UTM 包结构 ==="
           find "${{ github.workspace }}/${UTM_NAME}" -type f
-          
+
           # 打包成 zip（方便下载）
           cd "${{ github.workspace }}"
           zip -r "${UTM_NAME}.zip" "${UTM_NAME}"
           echo "✅ 生成 zip 包: ${UTM_NAME}.zip"
-          
+
           # 列出所有产物
           echo "=== 所有产物 ==="
-          ls -lh *.qcow2 *.utm.zip 2>/dev/null || ls -lh *.qcow2 *.utm 2>/dev/null
+          ls -lh *.img *.utm.zip 2>/dev/null || ls -lh *.img *.utm 2>/dev/null
 
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v2.2.1
@@ -205,9 +210,9 @@ jobs:
           name: ImmortWrt-QEMU-armsr-armv8
           body_path: ${{ github.workspace }}/armsr-armv8/info.md
           files: |
-            ${{ github.workspace }}/*.qcow2 
+            ${{ github.workspace }}/*.qcow2
             ${{ github.workspace }}/*.vmdk
-            ${{ github.workspace }}/*.img.gz
+            ${{ github.workspace }}/*.img
             ${{ github.workspace }}/*.utm.zip
           token: ${{ secrets.GITHUB_TOKEN }}
         env:

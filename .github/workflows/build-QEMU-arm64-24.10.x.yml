@@ -189,12 +189,12 @@ jobs:
           echo "$PLIST_CONTENT" | base64 -d > "${{ github.workspace }}/${UTM_NAME}/config.plist"
           echo "✅ 生成 config.plist"
 
-          # 替换占位符
-          sed -i "s|HOR_UUID_A|${DRIVE_UUID}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
-          sed -i "s|IMG_NAME_0|${IMG_GZ_NAME}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
-          sed -i "s|VM_NAME_0|${VM_NAME}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
-          sed -i "s|MAC_ADDRES0|${MAC_ADDRESS}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
-          sed -i "s|VM_UUID_0|${VM_UUID}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+           # 替换占位符
+           sed -i "s|HORE_UUID_A|${DRIVE_UUID}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+           sed -i "s|IMG_NAME_|${IMG_GZ_NAME}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+           sed -i "s|VM_NAME_|${VM_NAME}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+           sed -i "s|MAC_ADDRES_|${MAC_ADDRESS}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
+           sed -i "s|VM_UUID_|${VM_UUID}|g" "${{ github.workspace }}/${UTM_NAME}/config.plist"
 
           # 显示 UTM 包结构
           echo "=== UTM 包结构 ==="

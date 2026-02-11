@@ -154,10 +154,9 @@ jobs:
           VM_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
           VM_NAME="ImmortalWrt-${LUCI_VERSION}"
           
-          # 生成随机 MAC 地址（以 e2 开头，符合 UTM 惯例）
-          MAC_PREFIX="E2"
-          MAC_SUFFIX=$(printf '%02x%02x%02x' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
-          MAC_ADDRESS="${MAC_PREFIX}:${MAC_SUFFIX:0:2}:${MAC_SUFFIX:2:2}:${MAC_SUFFIX:4:2}"
+           # 生成随机 MAC 地址（以 e2 开头，符合 UTM 惯例）
+           MAC_SUFFIX=$(printf '%02x:%02x:%02x' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
+           MAC_ADDRESS="E2:${MAC_SUFFIX}"
           
           echo "🔑 DRIVE_UUID: $DRIVE_UUID"
           echo "🔑 VM_UUID: $VM_UUID"

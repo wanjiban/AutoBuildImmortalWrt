@@ -90,6 +90,10 @@
 	<key>Serial</key>
 	<array>
 		<dict>
+			<key>TTY</key>
+			<string></string>
+			<key>TTYEnabled</key>
+			<true/>
 			<key>Target</key>
 			<string>Auto</string>
 		</dict>

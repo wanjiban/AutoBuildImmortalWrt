@@ -176,8 +176,15 @@ jobs:
           cp "$IMG_FILE" "${{ github.workspace }}/${UTM_NAME}/Data/"
           echo "✅ 复制 img 到 Data 目录"
 
+          # 重新压缩为 .img.gz（减小 UTM 包大小）
+          gzip -f "${{ github.workspace }}/${UTM_NAME}/Data/${IMG_NAME}"
+          echo "✅ 压缩 img 为 img.gz"
+
+          # 更新镜像文件名（压缩后）
+          IMG_GZ_NAME="${IMG_NAME}.gz"
+
           # 动态生成 config.plist（参考 mikrotik4UTM）
-          sed -e "s|__IMAGE_NAME__|${IMG_NAME}|g" \
+          sed -e "s|__IMAGE_NAME__|${IMG_GZ_NAME}|g" \
               -e "s|__VM_NAME__|${VM_NAME}|g" \
               -e "s|__VM_UUID__|${VM_UUID}|g" \
               -e "s|__DRIVE_UUID__|${DRIVE_UUID}|g" \
@@ -201,7 +208,7 @@ jobs:
 
           # 列出所有产物
           echo "=== 所有产物 ==="
-          ls -lh *.img *.utm.zip 2>/dev/null || ls -lh *.img *.utm 2>/dev/null
+          ls -lh *.img.gz *.utm.zip 2>/dev/null || ls -lh *.img.gz *.utm 2>/dev/null
 
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v2.2.1
@@ -212,7 +219,7 @@ jobs:
           files: |
             ${{ github.workspace }}/*.qcow2
             ${{ github.workspace }}/*.vmdk
-            ${{ github.workspace }}/*.img
+            ${{ github.workspace }}/*.img.gz
             ${{ github.workspace }}/*.utm.zip
           token: ${{ secrets.GITHUB_TOKEN }}
         env:

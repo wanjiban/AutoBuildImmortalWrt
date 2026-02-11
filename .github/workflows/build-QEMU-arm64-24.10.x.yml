@@ -183,12 +183,7 @@ jobs:
           echo "✅ 生成 config.plist"
           
           # 生成图标 (SVG)
-          cat > "${{ github.workspace }}/${UTM_NAME}/Data/icon.svg" << 'EOF'
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect fill="#e74c3c" width="128" height="128" rx="20"/>
-  <text x="64" y="80" font-size="60" fill="white" text-anchor="middle" font-family="sans-serif">W</text>
-</svg>
-EOF
+          echo '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect fill="#e74c3c" width="128" height="128" rx="20"/><text x="64" y="80" font-size="60" fill="white" text-anchor="middle" font-family="sans-serif">W</text></svg>' > "${{ github.workspace }}/${UTM_NAME}/Data/icon.svg"
           echo "✅ 生成图标"
           
           # 显示 UTM 包结构

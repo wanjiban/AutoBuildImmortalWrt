@@ -163,7 +163,8 @@ jobs:
           echo "🔑 MAC_ADDRESS: $MAC_ADDRESS"
 
           # 安装工具
-          apt-get update && apt-get install -y qemu-utils gzip curl
+          sudo apt-get update
+          sudo apt-get install -y qemu-utils gzip curl
 
           # 转换 qcow2 为 raw img
           IMG_NAME="${QCOW2_NAME%.qcow2}.img"

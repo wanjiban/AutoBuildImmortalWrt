@@ -19,6 +19,7 @@ on:
           - 24.10.3
           - 24.10.4
           - 24.10.5
+          - 25.12.0-rc1
       profile:
         type: choice
         description: |

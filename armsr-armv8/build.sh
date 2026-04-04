@@ -91,14 +91,16 @@ PACKAGES="$PACKAGES luci-app-openclash"
 # PACKAGES="$PACKAGES openssh-sftp-server"
 # PACKAGES="$PACKAGES luci-i18n-samba4-zh-cn"
 # ADD by WJB
-PACKAGES="$PACKAGES luci-app-msd_lite"
-PACKAGES="$PACKAGES luci-i18n-msd_lite-zh-cn"
+#PACKAGES="$PACKAGES luci-app-msd_lite"
+#PACKAGES="$PACKAGES luci-i18n-msd_lite-zh-cn"
 PACKAGES="$PACKAGES nano-plus"
 PACKAGES="$PACKAGES luci-proto-wireguard"
 PACKAGES="$PACKAGES luci-app-frpc"
 PACKAGES="$PACKAGES luci-i18n-frpc-zh-cn"
 PACKAGES="$PACKAGES iperf3"
 PACKAGES="$PACKAGES htop"
+PACKAGES="$PACKAGES bind-dig"
+PACKAGES="$PACKAGES bind-tools"
 
 # 文件管理器
 # PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"

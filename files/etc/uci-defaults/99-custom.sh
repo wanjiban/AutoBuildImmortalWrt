@@ -189,9 +189,9 @@ uci set dropbear.@dropbear[0].Interface=''
 uci commit
 
 # 自定义
-uci set luci.diag.dns='jd.com'
-uci set luci.diag.ping='jd.com'
-uci set luci.diag.route='jd.com'
+uci set luci.diag.dns='taobao.com'
+uci set luci.diag.ping='taobao.com'
+uci set luci.diag.route='taobao.com'
 uci commit luci.diag
 
 uci set system.@system[0].hostname='WayOS'

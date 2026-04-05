@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AutoBuildImmortalWrt WayOS
 # AutoBuildImmortalWrt
 [![GitHub](https://img.shields.io/github/license/wukongdaily/AutoBuildImmortalWrt.svg?label=LICENSE&logo=github&logoColor=%20)](https://github.com/wukongdaily/AutoBuildImmortalWrt/blob/master/LICENSE)
@@ -120,4 +119,3 @@ https://wkdaily.cpolar.cn/15
 - https://github.com/sirpdboy/luci-theme-kucat
 - https://github.com/AdguardTeam/AdGuardHome
 - https://github.com/kiddin9/kwrt-packages
->>>>>>> master

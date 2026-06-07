@@ -92,6 +92,8 @@ PACKAGES="$PACKAGES luci-i18n-frpc-zh-cn"
 PACKAGES="$PACKAGES bind-dig"
 PACKAGES="$PACKAGES tcpdump"
 PACKAGES="$PACKAGES mtr"
+# iptables 兼容层，避免部分脚本报 iptables: not found
+PACKAGES="$PACKAGES iptables-nft"
 
 # 文件管理器
 # PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"

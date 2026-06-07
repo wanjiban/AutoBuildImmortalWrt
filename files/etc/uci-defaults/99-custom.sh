@@ -74,7 +74,7 @@ if [ "$count" -eq 1 ]; then
 	    type filter hook forward priority filter;
 	    policy accept;
 
-	    tcp flags syn tcp option maxseg size set 1400
+	    tcp flags syn tcp option maxseg size set rt mtu
 	}
 	EOF
 

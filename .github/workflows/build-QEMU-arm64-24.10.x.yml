@@ -125,15 +125,20 @@ jobs:
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 ${{ github.workspace }}
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk ${{ github.workspace }}
 
+      - name: Set Release Date
+        id: date
+        run: echo "date=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v2.2.1
         with:
-          tag_name: QEMU
-          name: ImmortWrt-QEMU-armsr-armv8
+          tag_name: QEMU-armsr-armv8-${{ steps.date.outputs.date }}
+          name: ImmortWrt-QEMU-armsr-armv8-${{ steps.date.outputs.date }}
           body_path: ${{ github.workspace }}/armsr-armv8/info.md
           files: |
             ${{ github.workspace }}/*.qcow2
             ${{ github.workspace }}/*.vmdk
+          make_latest: true
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -139,6 +139,10 @@ if echo "$PACKAGES" | grep -q "luci-app-ssr-plus"; then
 else
     echo "⚪️ 未选择 luci-app-ssr-plus"
 fi
+
+# 使用 QiuSimons 预编译的 daed 取代官方源版本
+sh shell/download-daed.sh ipk
+
 # 构建镜像
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Building image with the following packages:"
 echo "$PACKAGES"

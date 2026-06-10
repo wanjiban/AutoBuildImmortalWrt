@@ -95,6 +95,8 @@ PACKAGES="$PACKAGES mtr"
 PACKAGES="$PACKAGES iperf3"
 # iptables 兼容层，避免部分脚本报 iptables: not found
 PACKAGES="$PACKAGES iptables-nft"
+# 系统工具
+PACKAGES="$PACKAGES htop"
 
 # 文件管理器
 # PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"
@@ -145,6 +147,21 @@ fi
 
 # 使用 QiuSimons 预编译的 daed 取代官方源版本
 sh shell/download-daed.sh ipk
+
+# 使用自定义 geoip/geosite 数据（来自 wanjiban/v2ray-rules-dat）
+if echo "$PACKAGES" | grep -q "daed"; then
+    echo "🔄 [daed] 下载自定义 geoip/geosite 数据..."
+    GEO_REPO="wanjiban/v2ray-rules-dat"
+    GEO_TAG=$(curl -s "https://api.github.com/repos/$GEO_REPO/releases/latest" | grep -m1 '"tag_name":' | cut -d'"' -f4)
+    if [ -n "$GEO_TAG" ]; then
+        mkdir -p files/usr/share/daed
+        wget -q "https://github.com/$GEO_REPO/releases/download/$GEO_TAG/geoip.dat" -O files/usr/share/daed/geoip.dat
+        wget -q "https://github.com/$GEO_REPO/releases/download/$GEO_TAG/geosite.dat" -O files/usr/share/daed/geosite.dat
+        echo "✅ [daed] geoip/geosite 下载完成"
+    else
+        echo "⚠️ [daed] 获取 geo 数据失败，使用 feed 版本"
+    fi
+fi
 
 # 构建镜像
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Building image with the following packages:"

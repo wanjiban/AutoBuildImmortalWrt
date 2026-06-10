@@ -154,9 +154,9 @@ if echo "$PACKAGES" | grep -q "daed"; then
     GEO_REPO="wanjiban/v2ray-rules-dat"
     GEO_TAG=$(curl -s "https://api.github.com/repos/$GEO_REPO/releases/latest" | grep -m1 '"tag_name":' | cut -d'"' -f4)
     if [ -n "$GEO_TAG" ]; then
-        mkdir -p files/usr/share/daed
-        wget -q "https://github.com/$GEO_REPO/releases/download/$GEO_TAG/geoip.dat" -O files/usr/share/daed/geoip.dat
-        wget -q "https://github.com/$GEO_REPO/releases/download/$GEO_TAG/geosite.dat" -O files/usr/share/daed/geosite.dat
+        mkdir -p files/usr/share/v2ray
+        wget -q "https://github.com/$GEO_REPO/releases/download/$GEO_TAG/geoip.dat" -O files/usr/share/v2ray/geoip.dat
+        wget -q "https://github.com/$GEO_REPO/releases/download/$GEO_TAG/geosite.dat" -O files/usr/share/v2ray/geosite.dat
         echo "✅ [daed] geoip/geosite 下载完成"
     else
         echo "⚠️ [daed] 获取 geo 数据失败，使用 feed 版本"

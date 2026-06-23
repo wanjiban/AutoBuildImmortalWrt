@@ -60,13 +60,25 @@ esac
 
 # 3. 配置网络
 if [ "$count" -eq 1 ]; then
-    # 单网口设备，DHCP模式
+    # 单网口设备 类似于NAS模式 动态获取ip模式 具体ip地址取决于上一级路由器给它分配的ip 也方便后续你使用web页面设置旁路由
+    # 单网口设备 不支持修改ip 不要在此处修改ip
     uci set network.lan.proto='dhcp'
     uci delete network.lan.ipaddr
     uci delete network.lan.netmask
     uci delete network.lan.gateway
     uci delete network.lan.dns
     uci commit network
+    # 单网口的时候添加自定义防火墙规则
+    mkdir -p /etc/nftables.d
+    cat >> /etc/nftables.d/10-custom-filter-chains.nft <<-EOF
+	chain forward {
+	    type filter hook forward priority filter;
+	    policy accept;
+
+	    tcp flags syn tcp option maxseg size set rt mtu
+	}
+	EOF
+
 elif [ "$count" -gt 1 ]; then
     # 多网口设备配置
     # 配置WAN
@@ -95,22 +107,15 @@ elif [ "$count" -gt 1 ]; then
 
     # LAN口设置静态IP
     uci set network.lan.proto='static'
-    # 多网口设备 支持修改为别的管理后台地址 在Github Action 的UI上自行输入即可 
+    # 多网口设备 支持修改为别的ip地址,别的地址应该是网关地址，形如192.168.xx.1 项目说明里都强调过。
+    # 大家不能胡乱修改哦 比如有人修改为192.168.100.55 这是错误的理解 这个项目不能提前设置旁路地址
+    # 旁路的设置分2类情况,情况一是单网口的设备,默认是DHCP模式，ip应该在上一级路由器里查看。之后进入web页在设置旁路。
+    # 情况二旁路由如果是多网口设备，也应当用网关访问网页后，在自行在web网页里设置。总之大家不能直接在代码里修改旁路网关。千万不要徒增bug啦。
+    uci set network.lan.ipaddr='10.0.0.1'
     uci set network.lan.netmask='255.255.255.0'
-    # 设置路由器管理后台地址
-    IP_VALUE_FILE="/etc/config/custom_router_ip.txt"
-    if [ -f "$IP_VALUE_FILE" ]; then
-        CUSTOM_IP=$(cat "$IP_VALUE_FILE")
-        # 用户在UI上设置的路由器后台管理地址
-        uci set network.lan.ipaddr=$CUSTOM_IP
-        echo "custom router ip is $CUSTOM_IP" >> $LOGFILE
-    else
-        uci set network.lan.ipaddr='192.168.100.1'
-        echo "default router ip is 192.168.100.1" >> $LOGFILE
-    fi
-
-    # PPPoE设置
-    echo "enable_pppoe value: $enable_pppoe" >>$LOGFILE
+    echo "set 10.0.0.1 at $(date)" >>$LOGFILE
+    # 判断是否启用 PPPoE
+    echo "print enable_pppoe value=== $enable_pppoe" >>$LOGFILE
     if [ "$enable_pppoe" = "yes" ]; then
         echo "PPPoE enabled, configuring..." >>$LOGFILE
         uci set network.wan.proto='pppoe'
@@ -136,7 +141,7 @@ uci commit
 
 # 设置编译作者信息
 FILE_PATH="/etc/openwrt_release"
-NEW_DESCRIPTION="Packaged by wukongdaily"
+NEW_DESCRIPTION="Compiled by WayOS"
 sed -i "s/DISTRIB_DESCRIPTION='[^']*'/DISTRIB_DESCRIPTION='$NEW_DESCRIPTION'/" "$FILE_PATH"
 
 # 若luci-app-advancedplus (进阶设置)已安装 则去除zsh的调用 防止命令行报 /usb/bin/zsh: not found的提示
@@ -170,7 +175,7 @@ fi
 # 扩大docker涵盖的子网范围 '172.16.0.0/12'
 # 方便各类docker容器的端口顺利通过防火墙 
 if command -v dockerd >/dev/null 2>&1; then
-    echo "检测到 Docker，正在配置防火墙规则..."
+    echo "检测到 Docker, 正在配置防火墙规则..."
     FW_FILE="/etc/config/firewall"
 
     # 删除所有名为 docker 的 zone
@@ -213,7 +218,32 @@ config forwarding
 EOF
 
 else
-    echo "未检测到 Docker，跳过防火墙配置。"
+    echo "未检测到 Docker, 跳过防火墙配置。"
 fi
 
+
+# 设置所有网口可访问网页终端
+# uci delete ttyd.@ttyd[0].interface
+
+# 设置所有网口可连接 SSH
+uci set dropbear.@dropbear[0].Interface=''
+uci commit
+
+# 自定义
+uci set luci.diag.dns='taobao.com'
+uci set luci.diag.ping='taobao.com'
+uci set luci.diag.route='taobao.com'
+uci commit luci.diag
+
+uci set system.@system[0].hostname='WayOS'
+uci commit system
+
+uci set ttyd.@ttyd[0].command='/bin/login -f root'
+uci set ttyd.@ttyd[0].interface='@lan @wan'
+uci commit ttyd
+
+# 设置编译作者信息
+FILE_PATH="/etc/openwrt_release"
+NEW_DESCRIPTION="Compiled by WayOS"
+sed -i "s/DISTRIB_DESCRIPTION='[^']*'/DISTRIB_DESCRIPTION='$NEW_DESCRIPTION'/" "$FILE_PATH"
 exit 0

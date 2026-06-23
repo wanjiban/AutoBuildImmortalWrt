@@ -1,5 +1,4 @@
-# [新手指导](https://github.com/wukongdaily/AutoBuildImmortalWrt/wiki) 👈🏻
-# ImmortalWrt-ImageBuilder
+# AutoBuildImmortalWrt WayOS
 
 **⚠️ 重要声明**
 
@@ -9,9 +8,7 @@
 > **为了不给 ImmortalWrt 上游维护者增加额外负担和麻烦，所有相关问题请勿在 ImmortalWrt 群内反馈**。  <br>
 > **建议各位在本项目 [Discussions](https://github.com/wukongdaily/ImmortalWrt-ImageBuilder/discussions) 中提问或讨论**
 
-
 ---
-
 [![GitHub](https://img.shields.io/github/license/wukongdaily/AutoBuildImmortalWrt.svg?label=LICENSE&logo=github&logoColor=%20)](https://github.com/wukongdaily/AutoBuildImmortalWrt/blob/master/LICENSE)
 ![GitHub Stars](https://img.shields.io/github/stars/wukongdaily/AutoBuildImmortalWrt.svg?style=flat&logo=appveyor&label=Stars&logo=github)
 ![GitHub Forks](https://img.shields.io/github/forks/wukongdaily/AutoBuildImmortalWrt.svg?style=flat&logo=appveyor&label=Forks&logo=github)
@@ -142,3 +139,15 @@ https://wkdaily.cpolar.cn/15
        alt="Buy Me A Coffee"
        style="width:15%; height:auto;">
 </a>
+
+
+
+<details>
+<summary><h2>🍭相关引用</h2></summary>
+
+#### 🍭引用和项目参考的仓库
+- https://github.com/wukongdaily/RunFilesBuilder
+- https://github.com/wukongdaily/store
+- https://github.com/sirpdboy/luci-theme-kucat
+- https://github.com/AdguardTeam/AdGuardHome
+- https://github.com/kiddin9/kwrt-packages

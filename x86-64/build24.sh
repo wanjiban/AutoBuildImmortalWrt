@@ -1,7 +1,6 @@
 #!/bin/bash
 # Log file for debugging
 source shell/custom-packages.sh
-source shell/switch_repository.sh
 echo "第三方软件包: $CUSTOM_PACKAGES"
 LOGFILE="/tmp/uci-defaults-log.txt"
 echo "Starting 99-custom.sh at $(date)" >> $LOGFILE
@@ -33,6 +32,28 @@ else
   mkdir -p /home/build/immortalwrt/extra-packages
   cp -r /tmp/store-run-repo/run/x86/* /home/build/immortalwrt/extra-packages/
 
+  # 下载 luci-app-lucky 相关 ipk 包（自动获取最新版本）
+  LUCKY_API="https://api.github.com/repos/sirpdboy/luci-app-lucky/releases/latest"
+  LUCKY_ASSETS=$(curl -s $LUCKY_API | grep "browser_download_url" | cut -d '"' -f 4)
+
+  DEST_DIR="/home/build/immortalwrt/extra-packages/luci-app-lucky"
+  mkdir -p "$DEST_DIR"
+
+  # 定义需要下载的包的正则表达式
+  declare -A LUCKY_URLS=(
+    [lucky]="lucky_.*x86_64\.ipk"
+    [i18n]="luci-i18n-lucky-zh-cn_.*all\.ipk"
+    [app]="luci-app-lucky_.*all\.ipk"
+  )
+
+  for key in "${!LUCKY_URLS[@]}"; do
+    url=$(echo "$LUCKY_ASSETS" | grep -E "/${LUCKY_URLS[$key]}" | head -n1)
+    if [ -n "$url" ]; then
+      wget -q "$url" -O "$DEST_DIR/$(basename "$url")" &
+    fi
+  done
+  wait
+
   echo "✅ Run files copied to extra-packages:"
   ls -lh /home/build/immortalwrt/extra-packages/*.run
   # 解压并拷贝ipk到packages目录
@@ -48,17 +69,30 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - 开始构建固件..."
 PACKAGES=""
 PACKAGES="$PACKAGES curl"
 PACKAGES="$PACKAGES luci-i18n-diskman-zh-cn"
+PACKAGES="$PACKAGES luci-i18n-package-manager-zh-cn"
 PACKAGES="$PACKAGES luci-i18n-firewall-zh-cn"
-PACKAGES="$PACKAGES luci-theme-argon"
+# 服务——FileBrowser 用户名admin 密码admin
+# PACKAGES="$PACKAGES luci-i18n-filebrowser-go-zh-cn"
 PACKAGES="$PACKAGES luci-app-argon-config"
 PACKAGES="$PACKAGES luci-i18n-argon-config-zh-cn"
-#24.10
-PACKAGES="$PACKAGES luci-i18n-package-manager-zh-cn"
 PACKAGES="$PACKAGES luci-i18n-ttyd-zh-cn"
-PACKAGES="$PACKAGES openssh-sftp-server"
+PACKAGES="$PACKAGES luci-app-ttyd"
+PACKAGES="$PACKAGES luci-app-openclash"
+# ADD by WJB
+PACKAGES="$PACKAGES luci-app-msd_lite"
+PACKAGES="$PACKAGES luci-i18n-msd_lite-zh-cn"
+PACKAGES="$PACKAGES nano-plus"
+PACKAGES="$PACKAGES luci-proto-wireguard"
+PACKAGES="$PACKAGES luci-app-frpc"
+PACKAGES="$PACKAGES luci-i18n-frpc-zh-cn"
+PACKAGES="$PACKAGES iperf3"
+PACKAGES="$PACKAGES htop"
 
 # 文件管理器
-PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"
+# PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"
+# PACKAGES="$PACKAGES luci-app-filetransfer"
+# 静态文件服务器dufs(推荐)
+# PACKAGES="$PACKAGES luci-i18n-dufs-zh-cn"
 # ======== shell/custom-packages.sh =======
 # 合并imm仓库以外的第三方插件
 PACKAGES="$PACKAGES $CUSTOM_PACKAGES"
@@ -105,6 +139,10 @@ if echo "$PACKAGES" | grep -q "luci-app-ssr-plus"; then
 else
     echo "⚪️ 未选择 luci-app-ssr-plus"
 fi
+
+# 使用 QiuSimons 预编译的 daed 取代官方源版本
+sh shell/download-daed.sh ipk
+
 # 构建镜像
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Building image with the following packages:"
 echo "$PACKAGES"

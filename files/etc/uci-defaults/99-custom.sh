@@ -68,16 +68,6 @@ if [ "$count" -eq 1 ]; then
     uci delete network.lan.gateway
     uci delete network.lan.dns
     uci commit network
-    # 单网口的时候添加自定义防火墙规则
-    mkdir -p /etc/nftables.d
-    cat >> /etc/nftables.d/10-custom-filter-chains.nft <<-EOF
-	chain forward {
-	    type filter hook forward priority filter;
-	    policy accept;
-
-	    tcp flags syn tcp option maxseg size set rt mtu
-	}
-	EOF
 
 elif [ "$count" -gt 1 ]; then
     # 多网口设备配置

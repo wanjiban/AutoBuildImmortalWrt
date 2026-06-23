@@ -36,7 +36,7 @@ on:
         description: "集成 store 商店"
         required: false
         type: boolean
-        default: true
+        default: false
       enable_pppoe:
         description: "是否配置PPPoE拨号信息?"
         required: true
@@ -51,6 +51,15 @@ on:
       pppoe_password:
         description: "宽带密码 (若启用PPPoE)"
         required: false
+      include_docker:
+        description: |
+          是否编译 Docker 插件
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
 
 permissions:
   contents: write
@@ -110,20 +119,26 @@ jobs:
               -e PPPOE_PASSWORD=${{ inputs.pppoe_password }} \
               immortalwrt/imagebuilder:armsr-armv8-openwrt-${luci_version} /bin/bash /home/build/immortalwrt/build.sh
           done
+          
       - name: Copy Firmware to workspace
         run: |
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 ${{ github.workspace }}
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk ${{ github.workspace }}
 
+      - name: Set Release Date
+        id: date
+        run: echo "date=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: QEMU
-          name: ImmortWrt-QEMU-armsr-armv8-24.10.x
+          tag_name: QEMU-armsr-armv8-${{ steps.date.outputs.date }}
+          name: ImmortWrt-QEMU-armsr-armv8-${{ steps.date.outputs.date }}
           body_path: ${{ github.workspace }}/armsr-armv8/info.md
           files: |
-            ${{ github.workspace }}/*.qcow2 
+            ${{ github.workspace }}/*.qcow2
             ${{ github.workspace }}/*.vmdk
+          make_latest: true
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -45,6 +45,20 @@
 - 更新 `info.md`、各机型 `info.md`、README 中的默认 IP 与版本说明。
 - 固件默认主机名 `WayOS`，系统描述 `Compiled by WayOS`。
 
+### 分支与同步流程
+- **`master`**：只用于跟随上游，始终与 `wukongdaily/ImmortalWrt-ImageBuilder:master` 保持一致，不提交本地修改。
+- **`wayos`**：WayOS 的全部定制都在此分支，基线是自己的 `master`；上游更新先进入 `master`，再合并到 `wayos`。
+- 同步步骤：
+  ```bash
+  # 1. 把 master 更新到上游最新（仅镜像，不做改动）
+  git checkout master && git pull upstream master && git push origin master
+
+  # 2. 把 master 合并进 wayos
+  git checkout wayos && git merge master && git push origin wayos
+  ```
+- 本地跟踪关系：`master → origin/master`、`wayos → origin/wayos`（缺失时可用 `git branch -u origin/<分支> <分支>` 恢复）。
+- 说明：fork 页面顶部的「N commits ahead of …:master」是 GitHub 用**上游仓库**的默认分支做比较，N 即 WayOS 的提交数，并不代表分支基线有问题。
+
 ---
 [![GitHub](https://img.shields.io/github/license/wukongdaily/AutoBuildImmortalWrt.svg?label=LICENSE&logo=github&logoColor=%20)](https://github.com/wukongdaily/AutoBuildImmortalWrt/blob/master/LICENSE)
 ![GitHub Stars](https://img.shields.io/github/stars/wukongdaily/AutoBuildImmortalWrt.svg?style=flat&logo=appveyor&label=Stars&logo=github)

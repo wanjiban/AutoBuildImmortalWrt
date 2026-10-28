@@ -15,10 +15,17 @@
 ### 固件与工作流
 - **默认管理地址统一为 `10.0.0.1`**：多网口 / 无线工作流仍支持通过 `custom_router_ip` 自定义；单网口保持 DHCP 自动获取。
 - **新增 `Build 25.12.x QEMU-armsr-armv8` 工作流**：支持 25.12.0 / 25.12.1 / 25.12.2，产出 qcow2 / vmdk，默认 2GB，可选 Docker、商店、PPPoE。
-- **x86-64 Release 使用独立时间戳标签**：24.10 / 25.12 不再互相覆盖，历史固件可回溯。
-- **x86-64 24.10 增强**：生成 SHA-256 校验文件，Release 同时上传 img.gz、vmdk、qcow2。
+- **统一 Release 命名**：所有工作流使用 `wayos-<平台>-<版本>-<YYYYMMDD-HHMMSS>` 形式的唯一 Tag，同一天多次构建、多个版本互不覆盖；标题统一为 `WayOS <平台> <版本> (<型号>) - <UTC 时间>`。
+- **统一 Release 目录**：固件先整理到 `release/` 目录，附件固定为「固件 + `SHA256SUMS.txt` + `build-info.txt`」，并自动过滤 `profiles.json`、`.manifest` 等非固件文件。
+- **x86-64 增强**：24.10 / 25.12 均上传 img.gz、vmdk、qcow2，统一使用 `SHA256SUMS.txt` 校验。
 - **25.12.x 全平台**：同步支持 25.12.2（x86-64、ISO、Rockchip、sunxi、无线、QEMU-armsr-armv8）。
 - **ophub 工作流**：跟进上游切换到 Ubuntu 24.04。
+
+### Release 规范
+- **Tag**：`wayos-<平台>-<版本>-<YYYYMMDD-HHMMSS>`，精确到秒；若远端已存在同名 Tag，会自动追加 run id，确保同一天多次构建、多个版本互不覆盖。
+- **标题**：`WayOS <平台> <版本> (<型号>) - <YYYY-MM-DD HH:MM UTC>`。
+- **产物目录**：每次构建先整理到 `release/`，再整体上传；固定包含固件、`SHA256SUMS.txt`、`build-info.txt`，并自动过滤 `profiles.json`、`*.buildinfo`、`*.manifest` 等元数据。
+- **可回溯**：`build-info.txt` 记录工作流、run id、commit、版本、型号与构建参数。
 
 ### 插件集成
 - 默认启用科学上网插件：`openclash`、`ssr-plus`、`passwall2`、`nikki`、`homeproxy`。

@@ -190,13 +190,31 @@ jobs:
           fi
          
 
+      - name: Prepare release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLATFORM: Radxa
+          RELEASE_SLUG: flippy
+          RELEASE_VERSION: ${{ env.PREBUILT_LUCI_VERSION || inputs.luci_version }}
+          RELEASE_PROFILE: ${{ inputs.openwrt_soc }}
+          RELEASE_EXTRA_INFO: |
+            luci_version: ${{ env.PREBUILT_LUCI_VERSION || inputs.luci_version }}
+            soc: ${{ inputs.openwrt_soc }}
+            kernel: ${{ inputs.openwrt_kernel }}
+            prebuilt_rootfs: ${{ inputs.skip_imagebuilder }}
+          RELEASE_FILES: |
+            ${{ env.PACKAGED_OUTPUTPATH }}/*.img.gz
+        run: bash shell/release-stage.sh
+
       - name: Upload firmware to GitHub Releases
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: flippy
-          name: ImmortalWrt for Radxa Series and Similar Devices
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
           body_path: ${{ github.workspace }}/n1/radxa.md
-          files: |
-            ${{ env.PACKAGED_OUTPUTPATH }}/*.img.gz
+          files: release/*
+          make_latest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

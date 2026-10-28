@@ -215,14 +215,31 @@ jobs:
             echo -e "\n#### 不带docker" >> ${{ github.workspace }}/router-info.md
           fi
 
+      - name: Prepare release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLATFORM: Rockchip
+          RELEASE_SLUG: rockchip
+          RELEASE_VERSION: ${{ inputs.luci_version }}
+          RELEASE_PROFILE: ${{ inputs.profile }}
+          RELEASE_EXTRA_INFO: |
+            luci_version: ${{ inputs.luci_version }}
+            profile: ${{ inputs.profile }}
+            custom_router_ip: ${{ inputs.custom_router_ip }}
+            include_docker: ${{ inputs.include_docker }}
+          RELEASE_FILES: |
+            ${{ github.workspace }}/bin/targets/rockchip/armv8/*.img.gz
+        run: bash shell/release-stage.sh
+
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: Autobuild
-          name: ImmortWrt-Rockchip
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
           body_path: ${{ github.workspace }}/router-info.md
-          files: |
-            ${{ github.workspace }}/bin/targets/rockchip/armv8/*.img.gz
+          files: release/*
+          make_latest: true
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -288,13 +288,30 @@ jobs:
           fi
 
 
+      - name: Prepare release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLATFORM: Phicomm N1
+          RELEASE_SLUG: phicomm-n1
+          RELEASE_VERSION: ${{ env.PREBUILT_LUCI_VERSION || inputs.luci_version }}
+          RELEASE_PROFILE: phicomm-n1
+          RELEASE_EXTRA_INFO: |
+            luci_version: ${{ env.PREBUILT_LUCI_VERSION || inputs.luci_version }}
+            kernel: ${{ inputs.openwrt_kernel }}
+            prebuilt_rootfs: ${{ inputs.skip_imagebuilder }}
+          RELEASE_FILES: |
+            ${{ env.PACKAGED_OUTPUTPATH }}/*.img.gz
+        run: bash shell/release-stage.sh
+
       - name: Upload firmware to GitHub Releases
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: phicomm-n1
-          name: ImmortalWrt for Phicomm N1
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
           body_path: ${{ github.workspace }}/n1/info.md
-          files: |
-            ${{ env.PACKAGED_OUTPUTPATH }}/*.img.gz
+          files: release/*
+          make_latest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

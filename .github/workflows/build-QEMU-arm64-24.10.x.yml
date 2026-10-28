@@ -138,19 +138,32 @@ jobs:
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.qcow2 ${{ github.workspace }}
           cp ${{ github.workspace }}/bin/targets/armsr/armv8/*.vmdk ${{ github.workspace }}
 
-      - name: Set Release Date
-        id: date
-        run: echo "date=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+      - name: Prepare release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLATFORM: QEMU armsr-armv8
+          RELEASE_SLUG: armsr-armv8
+          RELEASE_VERSION: ${{ inputs.luci_version }}
+          RELEASE_PROFILE: ${{ inputs.profile }}
+          RELEASE_EXTRA_INFO: |
+            luci_version: ${{ inputs.luci_version }}
+            rootfs_partsize: ${{ inputs.rootfs_partsize }} MB
+            custom_router_ip: ${{ inputs.custom_router_ip }}
+            enable_store: ${{ inputs.enable_store }}
+            enable_pppoe: ${{ inputs.enable_pppoe }}
+          RELEASE_FILES: |
+            ${{ github.workspace }}/*.qcow2
+            ${{ github.workspace }}/*.vmdk
+        run: bash shell/release-stage.sh
 
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: QEMU-armsr-armv8-${{ steps.date.outputs.date }}
-          name: ImmortWrt-QEMU-armsr-armv8-${{ steps.date.outputs.date }}
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
           body_path: ${{ github.workspace }}/armsr-armv8/info.md
-          files: |
-            ${{ github.workspace }}/*.qcow2
-            ${{ github.workspace }}/*.vmdk
+          files: release/*
           make_latest: true
           token: ${{ secrets.GITHUB_TOKEN }}
         env:

@@ -4,8 +4,9 @@ BASE_DIR="extra-packages"
 TEMP_DIR="$BASE_DIR/temp-unpack"
 TARGET_DIR="packages"
 
-# 清理旧的目录
-rm -rf "$TEMP_DIR" "$TARGET_DIR"
+# 只清理临时解包目录；保留 ImageBuilder 自带的 packages/（kernel、libc、base-files 等），
+# 避免删除后本地索引 packages.adb 缺失产生 "No such file or directory" 警告。
+rm -rf "$TEMP_DIR"
 mkdir -p "$TEMP_DIR" "$TARGET_DIR"
 
 # 解压 .run 文件

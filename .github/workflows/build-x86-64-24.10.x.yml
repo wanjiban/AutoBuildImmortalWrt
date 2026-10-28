@@ -135,14 +135,6 @@ jobs:
           immortalwrt/imagebuilder:x86-64-openwrt-${luci_version} /bin/bash /home/build/immortalwrt/build.sh
           
 
-      - name: Generate Firmware SHA-256
-        run: |
-          cp ${{ github.workspace }}/bin/targets/x86/64/* ${{ github.workspace }}
-          for file in *squashfs-combined-efi.img.gz; do
-            sha256sum "$file" > "$file.sha256"
-            sha256sum -c "$file.sha256"
-          done
-
       - name: Create info
         run: |
           cat > ${{ github.workspace }}/router-info.md <<EOF
@@ -162,21 +154,36 @@ jobs:
           else
             echo -e "\n#### 不带docker" >> ${{ github.workspace }}/router-info.md
           fi
-      - name: Set Release Date
-        id: date
-        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Prepare release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLATFORM: x86-64
+          RELEASE_SLUG: x86-64
+          RELEASE_VERSION: ${{ inputs.luci_version }}
+          RELEASE_PROFILE: ${{ inputs.profile }}
+          RELEASE_EXTRA_INFO: |
+            luci_version: ${{ inputs.luci_version }}
+            rootfs_size: ${{ inputs.profile }}
+            custom_router_ip: ${{ inputs.custom_router_ip }}
+            enable_store: ${{ inputs.enable_store }}
+            include_docker: ${{ inputs.include_docker }}
+            enable_pppoe: ${{ inputs.enable_pppoe }}
+          RELEASE_FILES: |
+            ${{ github.workspace }}/bin/targets/x86/64/*squashfs-combined-efi.img.gz
+            ${{ github.workspace }}/bin/targets/x86/64/*squashfs-combined-efi.vmdk
+            ${{ github.workspace }}/bin/targets/x86/64/*squashfs-combined-efi.qcow2
+        run: bash shell/release-stage.sh
 
       - name: Upload ImmortWrt as release assets
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: Autobuild-x86-64-${{ steps.date.outputs.date }}
-          name: ImmortWrt-x86-64-efi-24.10.2-${{ steps.date.outputs.date }}
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
           body_path: ${{ github.workspace }}/router-info.md
-          files: |
-            ${{ github.workspace }}/*squashfs-combined-efi.img.gz
-            ${{ github.workspace }}/*squashfs-combined-efi.vmdk
-            ${{ github.workspace }}/*.qcow2
-            ${{ github.workspace }}/*.sha256
+          files: release/*
+          make_latest: true
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

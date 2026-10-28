@@ -138,6 +138,9 @@ jobs:
     needs: build_immortalwrt
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
       - name: Download firmware artifact
         uses: actions/download-artifact@v7
         with:
@@ -158,12 +161,33 @@ jobs:
           firmware_file=$(ls *squashfs-combined-efi.img.gz)
           cd img-installer
           bash autobuild/autobuild.sh "../$firmware_file"
+          # 让 ISO 文件名自带版本号，避免不同版本的附件重名
+          mv output/custom-installer-x86_64.iso "output/custom-installer-x86_64-${{ inputs.luci_version }}.iso"
+
+      - name: Prepare release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLATFORM: x86-64 ISO Installer
+          RELEASE_SLUG: iso-x86-64
+          RELEASE_VERSION: ${{ inputs.luci_version }}
+          RELEASE_PROFILE: ${{ inputs.profile }}
+          RELEASE_EXTRA_INFO: |
+            luci_version: ${{ inputs.luci_version }}
+            rootfs_partition: ${{ inputs.profile }}
+            enable_store: ${{ inputs.enable_store }}
+            include_docker: ${{ inputs.include_docker }}
+            enable_pppoe: ${{ inputs.enable_pppoe }}
+          RELEASE_FILES: |
+            ${{ github.workspace }}/img-installer/output/*.iso
+        run: bash shell/release-stage.sh
 
       - name: 🚀 上传 ISO 到 Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: "Custom-Installer-x86_64-ISO"
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
           body_path: "${{ github.workspace }}/img-installer/autobuild/info.md"
-          files: |
-            img-installer/output/custom-installer-x86_64.iso
+          files: release/*
+          make_latest: true
           token: "${{ secrets.GITHUB_TOKEN }}"

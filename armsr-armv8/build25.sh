@@ -154,6 +154,10 @@ fi
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Building image with the following packages:"
 echo "$PACKAGES"
 
+# armsr 镜像脚本会执行 cp root-armsr/boot/.，提前创建空 boot 目录避免
+# "cp: cannot stat .../root-armsr/boot/.: No such file or directory"
+mkdir -p files/boot
+
 make image PROFILE=$PROFILE PACKAGES="$PACKAGES" FILES="/home/build/immortalwrt/files" ROOTFS_PARTSIZE=$ROOTFS_PARTSIZE
 
 if [ $? -ne 0 ]; then

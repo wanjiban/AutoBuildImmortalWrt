@@ -1,0 +1,5 @@
+# macOS 噪音
+.DS_Store
+
+# release-stage.sh 生成的发布产物目录（仅本地调试时出现）
+release/

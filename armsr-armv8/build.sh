@@ -108,6 +108,12 @@ PACKAGES="$PACKAGES htop"
 # 合并imm仓库以外的第三方插件
 PACKAGES="$PACKAGES $CUSTOM_PACKAGES"
 
+# 判断是否需要编译 Docker 插件
+if [ "$INCLUDE_DOCKER" = "yes" ]; then
+    PACKAGES="$PACKAGES luci-i18n-dockerman-zh-cn"
+    echo "Adding package: luci-i18n-dockerman-zh-cn"
+fi
+
 # 若构建openclash 则添加内核
 if echo "$PACKAGES" | grep -q "luci-app-openclash"; then
     echo "✅ 已选择 luci-app-openclash，添加 openclash core"
@@ -146,7 +152,7 @@ fi
 
 
 # 使用 QiuSimons 预编译的 daed 取代官方源版本
-sh shell/download-daed.sh ipk
+sh shell/download-daed.sh ipk aarch64
 
 # 使用自定义 geoip/geosite 数据（来自 wanjiban/v2ray-rules-dat）
 if echo "$PACKAGES" | grep -q "daed"; then

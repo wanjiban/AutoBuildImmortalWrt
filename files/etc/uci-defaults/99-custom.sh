@@ -101,9 +101,18 @@ elif [ "$count" -gt 1 ]; then
     # 大家不能胡乱修改哦 比如有人修改为192.168.100.55 这是错误的理解 这个项目不能提前设置旁路地址
     # 旁路的设置分2类情况,情况一是单网口的设备,默认是DHCP模式，ip应该在上一级路由器里查看。之后进入web页在设置旁路。
     # 情况二旁路由如果是多网口设备，也应当用网关访问网页后，在自行在web网页里设置。总之大家不能直接在代码里修改旁路网关。千万不要徒增bug啦。
-    uci set network.lan.ipaddr='10.0.0.1'
+    # 默认管理地址为 10.0.0.1；若工作流传入 custom_router_ip 则优先使用用户设置
+    IP_VALUE_FILE="/etc/config/custom_router_ip.txt"
+    if [ -f "$IP_VALUE_FILE" ]; then
+        CUSTOM_IP=$(cat "$IP_VALUE_FILE")
+        CUSTOM_IP=${CUSTOM_IP:-10.0.0.1}
+        uci set network.lan.ipaddr="$CUSTOM_IP"
+        echo "custom router ip is $CUSTOM_IP" >> $LOGFILE
+    else
+        uci set network.lan.ipaddr='10.0.0.1'
+        echo "default router ip is 10.0.0.1" >> $LOGFILE
+    fi
     uci set network.lan.netmask='255.255.255.0'
-    echo "set 10.0.0.1 at $(date)" >>$LOGFILE
     # 判断是否启用 PPPoE
     echo "print enable_pppoe value=== $enable_pppoe" >>$LOGFILE
     if [ "$enable_pppoe" = "yes" ]; then
@@ -120,6 +129,24 @@ elif [ "$count" -gt 1 ]; then
     fi
 
     uci commit network
+fi
+
+# 4. honk：首次启动自动对齐局域网网卡名称（默认配置里的 ens18/br-lan 可能与实际不符）
+HONK_CONFIG="/etc/honk/config.dae"
+if [ -f "$HONK_CONFIG" ]; then
+    if [ -d /sys/class/net/br-lan ]; then
+        HONK_LAN_IF="br-lan"
+    elif [ -n "$lan_ifnames" ]; then
+        HONK_LAN_IF=$(echo "$lan_ifnames" | awk '{print $1}')
+    else
+        HONK_LAN_IF=$(echo "$ifnames" | awk '{print $1}')
+    fi
+    if [ -n "$HONK_LAN_IF" ]; then
+        sed -i "s/^\([[:space:]]*lan_interface:\).*/\1 $HONK_LAN_IF/" "$HONK_CONFIG"
+        echo "honk lan_interface aligned to $HONK_LAN_IF" >>"$LOGFILE"
+    else
+        echo "honk lan_interface not changed: no interface detected" >>"$LOGFILE"
+    fi
 fi
 
 # 设置所有网口可访问网页终端

@@ -1,16 +1,18 @@
 #!/bin/bash
 # 下载 QiuSimons 预编译的 daed IPK/APK，替代 ImmortalWrt 官方源版本
-# 用法: download-daed.sh <ipk|apk>
+# 用法: download-daed.sh <ipk|apk> [x86_64|aarch64]
+# 说明: ImageBuilder 容器在 x86_64 运行，仅靠 uname -m 无法判断目标架构，
+#       因此 ARM64 构建需显式传入 aarch64。
 
 PKG_EXT="${1:-ipk}"
 
-ARCH=$(uname -m)
+ARCH="${2:-$(uname -m)}"
 case "$ARCH" in
-    x86_64) FEARCH="x86_64" ;;
-    aarch64) FEARCH="aarch64_generic" ;;
+    x86_64|amd64) FEARCH="x86_64" ;;
+    aarch64|arm64) FEARCH="aarch64_generic" ;;
     *)
         echo "⚠️ [daed] 不支持的架构 $ARCH，跳过"
-        return 0
+        exit 0
         ;;
 esac
 
@@ -21,7 +23,7 @@ ASSET_URLS=$(curl -s "$RELEASE_API" | grep "browser_download_url" | cut -d'"' -f
 
 if [ -z "$ASSET_URLS" ]; then
     echo "⚠️ [daed] 获取 release 信息失败（可能被限流），跳过"
-    return 0
+    exit 0
 fi
 
 mkdir -p extra-packages/daed

@@ -8,6 +8,36 @@
 > **为了不给 ImmortalWrt 上游维护者增加额外负担和麻烦，所有相关问题请勿在 ImmortalWrt 群内反馈**。  <br>
 > **建议各位在本项目 [Discussions](https://github.com/wukongdaily/ImmortalWrt-ImageBuilder/discussions) 中提问或讨论**
 
+## 🚀 WayOS 分支变动（相对上游 wukongdaily/master）
+
+> 本分支已合并上游 master 最新变更（25.12.2 构建选项、ophub 工作流修复等），并保留以下 WayOS 定制。
+
+### 固件与工作流
+- **默认管理地址统一为 `10.0.0.1`**：多网口 / 无线工作流仍支持通过 `custom_router_ip` 自定义；单网口保持 DHCP 自动获取。
+- **新增 `Build 25.12.x QEMU-armsr-armv8` 工作流**：支持 25.12.0 / 25.12.1 / 25.12.2，产出 qcow2 / vmdk，默认 2GB，可选 Docker、商店、PPPoE。
+- **x86-64 Release 使用独立时间戳标签**：24.10 / 25.12 不再互相覆盖，历史固件可回溯。
+- **x86-64 24.10 增强**：生成 SHA-256 校验文件，Release 同时上传 img.gz、vmdk、qcow2。
+- **25.12.x 全平台**：同步支持 25.12.2（x86-64、ISO、Rockchip、sunxi、无线、QEMU-armsr-armv8）。
+- **ophub 工作流**：跟进上游切换到 Ubuntu 24.04。
+
+### 插件集成
+- 默认启用科学上网插件：`openclash`、`ssr-plus`、`passwall2`、`nikki`、`homeproxy`。
+- 默认集成 `adguardhome`。
+- **QEMU-armsr-armv8 25.12 预装 honk**：接入 daeuniverse 官方源，集成 `honk` + `luci-app-honk` 与精简配置（[config.min.dae](https://github.com/qichiyuhub/rule/blob/main/config/honk/config.min.dae)），首次启动自动对齐 LAN 网卡；默认不启用，配置订阅后在「服务 → daehonk」开启，面板 `http://10.0.0.1:9090/ui/`（honk 与 daed 不要同时启用）。
+- 集成 `luci-app-daed`：使用 QiuSimons 预编译版，并下载自定义 geoip / geosite 数据。
+- 保留 mosdns、lucky 等可选插件配置，可按需在 `shell/custom-packages.sh` / `shell/apk-custom-packages.sh` 中开启。
+
+### 虚拟机与网络优化
+- **UTM / KVM 优化**：启用 `vmxnet3`，`e1000` 调整为模块；GRUB 标题改为 `WayOS`、超时 1 秒。
+- **eBPF 内核参数统一**：BPF toolchain 使用 HOST，`kmod-sched-bpf`、`kmod-xdp-sockets-diag` 内置，启用 `CGROUP_NET_CLASSID`。
+- **TCP 优化 sysctl**：收发缓冲区提升至 64MB，启用 TCP Fast Open（`files/etc/sysctl.d/11-wayos-network.conf`）。
+- **首次启动脚本增强**：主机名 `WayOS`、编译标识 `Compiled by WayOS`、Docker 防火墙规则、ttyd / SSH 访问优化、nftables 规则修复。
+- **移除单网口 MSS Clamping 规则**，避免与上游 nftables 默认规则冲突。
+
+### 文档与标识
+- 更新 `info.md`、各机型 `info.md`、README 中的默认 IP 与版本说明。
+- 固件默认主机名 `WayOS`，系统描述 `Compiled by WayOS`。
+
 ---
 [![GitHub](https://img.shields.io/github/license/wukongdaily/AutoBuildImmortalWrt.svg?label=LICENSE&logo=github&logoColor=%20)](https://github.com/wukongdaily/AutoBuildImmortalWrt/blob/master/LICENSE)
 ![GitHub Stars](https://img.shields.io/github/stars/wukongdaily/AutoBuildImmortalWrt.svg?style=flat&logo=appveyor&label=Stars&logo=github)
@@ -20,9 +50,9 @@
 > 3、支持按需增加[第三方软件](https://github.com/wukongdaily/store/blob/master/README.md)  如何集成 https://github.com/wukongdaily/AutoBuildImmortalWrt/discussions/209 <br>
 > 4、点击这里查看👉🏻[全部支持的机型列表](https://github.com/wukongdaily/AutoBuildImmortalWrt/blob/master/SUPPORT.md) 👈🏻<br>
 > 5、在UI上 新增luci版本的可选项，默认最新版25.12.x https://github.com/wukongdaily/AutoBuildImmortalWrt/discussions/426<br>
-> 6、支持设置管理地址的ip 比如192.168.100.1 这里强调 这项功能仅针对多网口机型 单网口的逻辑还是自动获取ip模式（dhcp）无固定ip<br>
+> 6、支持设置管理地址的ip 比如10.0.0.1 这里强调 这项功能仅针对多网口机型 单网口的逻辑还是自动获取ip模式（dhcp）无固定ip<br>
 > 7、对于[插件追新的用户 建议前往run项目 下载run后 ](https://github.com/wukongdaily/RunFilesBuilder/discussions/41)用命令sh xx.run 覆盖安装 <br>
-> 8、支持24.10.x 、25.12.x 等版本 （包括x86-64-ISO、x86-64、rockchip、全志sunxi、无线路由器）
+> 8、支持24.10.x 、25.12.x 等版本 （包括x86-64-ISO、x86-64、rockchip、全志sunxi、无线路由器、QEMU-armsr-armv8）
 
 ## [基本用法步骤](https://github.com/wukongdaily/AutoBuildImmortalWrt/wiki) 👈🏻
 1、fork本项目<br>
@@ -72,12 +102,12 @@ https://www.youtube.com/watch?v=7i6BQeitUtE
 所谓正常的路由模式 就是指多网口用户，多网口的意思就是2个或者2个以上网口的情况。<br>
 一般wan用于拨号或者自动获取ip <br>
 而其他lan一般是给其他设备分配dhcp<br>
-这种情况下 你可以修改路由器的默认ip  `192.168.100.1` 比如你可以修改为`192.168.80.1 ` 诸如此类。<br>
+这种情况下 你可以修改路由器的默认ip  `10.0.0.1` 比如你可以修改为`192.168.80.1 ` 诸如此类。<br>
 没错，修改此ip 无非就是为了避免跟光猫或者跟家庭中的其他路由器网段冲突。大多数用户，无需更改。
 
 ## 该固件默认属性？(必读)
 - 该固件刷入【单网口设备】默认采用DHCP模式,自动获得ip。类似NAS的做法
-- 该固件刷入【多网口设备】默认WAN口采用DHCP模式，LAN 口ip为  `192.168.100.1` <br>其中eth0为WAN 其余网口均为LAN
+- 该固件刷入【多网口设备】默认WAN口采用DHCP模式，LAN 口ip为  `10.0.0.1` <br>其中eth0为WAN 其余网口均为LAN
 - 若用户在工作流中勾选了拨号信息 则WAN口模式为pppoe拨号模式。
 - 建议拨号用户使用之前重启一次光猫。
 - 综合上述特点，【单网口设备】应该先接路由器，先在上级路由器查看一下它的ip 再访问。
